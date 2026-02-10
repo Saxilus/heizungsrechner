@@ -90,7 +90,7 @@ th {
 <label>Gas/Ölpreis heute (€/kWh):
 <input type="number" id="gasPrice" value="0.10" step="0.01"></label>
 
-<label>Preissteigerung von Öl/Gas (% p.a.):
+<label>jährliche Preissteigerung von Öl/Gas (% p.a.):
 <input type="number" id="gasInflation" value="3" step="0.1"></label>
 
 <label>Jahresverbrauch (kWh/Jahr):
@@ -178,7 +178,8 @@ function calculate() {
 
         resultHTML += '<div class="note">';
         resultHTML += 'Anlagewert abzüglich Mehrkosten: ';
-        resultHTML += netAtBE.toFixed(0) + ' €';
+        resultHTML += netAtBE.toFixed(0) + ' € nach ' + breakEvenYear + ' Jahren';
+        resultHTML += '</div>';
         resultHTML += '</div>';
     } else {
         resultHTML += '<div class="break-even">';
