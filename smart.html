@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Heizung-Rechner</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 16px;
+    max-width: 900px;
+}
+
+h2 {
+    margin-top: 0;
+}
+
+label {
+    display: block;
+    margin: 12px 0;
+    font-size: 16px;
+}
+
+input {
+    width: 100%;
+    padding: 10px;
+    margin-top: 4px;
+    font-size: 16px;
+}
+
+button {
+    width: 100%;
+    margin-top: 16px;
+    padding: 12px;
+    font-size: 18px;
+}
+
+table {
+    border-collapse: collapse;
+    margin-top: 20px;
+    width: 100%;
+    font-size: 14px;
+}
+
+th, td {
+    border: 1px solid #ccc;
+    padding: 6px;
+    text-align: right;
+    word-break: break-word;
+}
+
+th {
+    background-color: #eee;
+}
+
+.break-even {
+    font-weight: bold;
+    margin-top: 20px;
+    font-size: 18px;
+}
+
+.note {
+    margin-top: 6px;
+    font-style: italic;
+}
+
+/* Extra Optimierung für sehr kleine Displays */
+@media (max-width: 480px) {
+    table {
+        font-size: 12px;
+    }
+    th, td {
+        padding: 4px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<h2>Wärmepumpe vs. Gas/Öl – Break-even Rechner</h2>
+
+<label>Gas/Ölpreis heute (€/kWh):
+<input type="number" id="gasPrice" value="0.10" step="0.01"></label>
+
+<label>Preissteigerung von Öl/Gas (% p.a.):
+<input type="number" id="gasInflation" value="3" step="0.1"></label>
+
+<label>Jahresverbrauch (kWh/Jahr):
+<input type="number" id="gasConsumption" value="14500"></label>
+
+<label>JAZ Wärmepumpe:
+<input type="number" id="wpJAZ" value="3.5" step="0.1"></label>
+
+<label>Strompreis WP (€/kWh):
+<input type="number" id="electricityPrice" value="0.30" step="0.01"></label>
+
+<label>Investitionskosten für WP (€):
+<input type="number" id="investment" value="17000"></label>
+
+<label>Zinssatz bei Anlage (% p.a.):
+<input type="number" id="interestRate" value="3" step="0.1"></label>
+
+<button onclick="calculate()">Berechnen</button>
+
+<div id="result"></div>
+
+<script>
+function calculate() {
+
+    var gasPrice0 = Number(document.getElementById("gasPrice").value);
+    var gasInflation = Number(document.getElementById("gasInflation").value) / 100;
+    var gasConsumption = Number(document.getElementById("gasConsumption").value);
+    var wpJAZ = Number(document.getElementById("wpJAZ").value);
+    var electricityPrice = Number(document.getElementById("electricityPrice").value);
+    var investment = Number(document.getElementById("investment").value);
+    var interestRate = Number(document.getElementById("interestRate").value) / 100;
+
+    var wpCost = (gasConsumption / wpJAZ) * electricityPrice;
+
+    var cumulativeSaving = 0;
+    var breakEvenYear = null;
+
+    var tableHTML = '<table><tr>' +
+        '<th>Jahr</th>' +
+        '<th>HK €/kWh</th>' +
+        '<th>HK €</th>' +
+        '<th>WP €</th>' +
+        '<th>Plus €</th>' +
+        '<th>Kumul. €</th>' +
+        '<th>Anlage €</th>' +
+        '</tr>';
+
+    for (var year = 1; year <= 30; year++) {
+
+        var gasPriceYear = gasPrice0 * Mathх͏E.pow(1 + gasInflation, year - 1);
+        var gasCost = gasConsumption * gasPriceYear;
+        var saving = gasCost - wpCost;
+
+        cumulativeSaving += saving;
+
+        var investedValue = investment * Math.pow(1 + interestRate, year);
+        var netAssetValue = investedValue - cumulativeSaving;
+
+        if (breakEvenYear === null && cumulativeSaving >= investment) {
+            breakEvenYear = year;
+        }
+
+        tableHTML += '<tr>' +
+            '<td>' + year + '</td>' +
+            '<td>' + gasPriceYear.toFixed(3) + '</td>' +
+            '<td>' + gasCost.toFixed(0) + '</td>' +
+            '<td>' + wpCost.toFixed(0) + '</td>' +
+            '<td>' + saving.toFixed(0) + '</td>' +
+            '<td>' + cumulativeSaving.toFixed(0) + '</td>' +
+            '<td>' + netAssetValue.toFixed(0) + '</td>' +
+            '</tr>';
+    }
+
+    tableHTML += '</table>';
+
+    var resultHTML = '';
+
+    if (breakEvenYear !== null) {
+        var investedAtBE = investment * Math.pow(1 + interestRate, breakEvenYear);
+        var netAtBE = investedAtBE - cumulativeSaving;
+
+        resultHTML += '<div class="break-even">';
+        resultHTML += 'Break-even nach ca. ' + breakEvenYear + ' Jahren';
+        resultHTML += '</div>';
+
+        resultHTML += '<div class="note">';
+        resultHTML += 'Anlagewert abzüglich Mehrkosten: ';
+        resultHTML += netAtBE.toFixed(0) + ' €';
+        resultHTML += '</div>';
+    } else {
+        resultHTML += '<div class="break-even">';
+        resultHTML += 'Kein Break-even innerhalb von 30 Jahren erreicht';
+        resultHTML += '</div>';
+    }
+
+    document.getElementById("result").innerHTML = resultHTML + tableHTML;
+}
+</script>
+
+</body>
+</html>
